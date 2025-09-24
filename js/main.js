@@ -1,16 +1,18 @@
 
-import { addTag, deleteTag, addGroup } from './crud.js';
+import { addTag, addGroup, deleteTag, deleteGroup } from './crud.js';
 import { showToast } from './utils.js';
-import { initRealtimeListener, listenToGroups } from './listener.js';
+import { initRealtimeListener } from './listener.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Buttons
-    const addBtn = document.getElementById("addBtn");
     const addGroupBtn = document.getElementById("addGroupBtn");
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 
     // Modals
     const addModal = document.getElementById("addModal");
     const addGroupModal = document.getElementById("addGroupModal");
+    const deleteGroupModal = document.getElementById('deleteGroupModal');
 
     // Close Buttons
     const closeButtons = document.querySelectorAll(".close-btn");
@@ -25,16 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const newGroupNameInput = document.getElementById("newGroupNameInput");
     const searchInput = document.getElementById("searchInput");
 
-    // Group selection
-    const groupSelectionContainer = document.getElementById("groupSelection");
-    let selectedGroup = 'General'; // Default group
+    let selectedGroup = null;
+    let groupToDelete = null;
 
     // --- MODAL VISIBILITY --- //
-
-    addBtn.addEventListener('click', () => {
-        populateGroupSelection();
-        addModal.style.display = "block";
-    });
 
     addGroupBtn.addEventListener('click', () => {
         addGroupModal.style.display = "block";
@@ -50,10 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('click', (event) => {
-        if (event.target == addModal || event.target == addGroupModal) {
-            addModal.style.display = "none";
-            addGroupModal.style.display = "none";
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
         }
+    });
+
+    cancelDeleteBtn.addEventListener('click', () => {
+        deleteGroupModal.style.display = 'none';
     });
 
     // --- FORM SUBMISSIONS --- //
@@ -63,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = nameInput.value.trim();
         const url = urlInput.value.trim();
 
-        if (!name || !url) {
-            showToast("El nombre y la URL son obligatorios.", 'error');
+        if (!name || !url || !selectedGroup) {
+            showToast("El nombre, la URL y el grupo son obligatorios.", 'error');
             return;
         }
 
@@ -84,44 +83,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- GROUP SELECTION LOGIC --- //
+    confirmDeleteBtn.addEventListener('click', async () => {
+        if (groupToDelete) {
+            await deleteGroup(groupToDelete);
+            showToast(`Grupo "${groupToDelete}" eliminado.`, 'info');
+            deleteGroupModal.style.display = 'none';
+            groupToDelete = null;
+        }
+    });
+    
+    // --- MODAL TRIGGER FUNCTIONS --- //
+    
+    function openAddLinkModal(groupName) {
+        selectedGroup = groupName;
+        document.getElementById('addModalTitle').textContent = `Agregar Link a ${groupName}`;
+        addModal.style.display = "block";
+    }
 
-    function populateGroupSelection() {
-        listenToGroups((groups) => {
-            groupSelectionContainer.innerHTML = '<p>Selecciona un grupo:</p>'; // Reset
-            const allGroups = ['General', ...groups.filter(g => g !== 'General')];
-            
-            const select = document.createElement('select');
-            select.className = 'group-select input-styles'; // Re-use existing style for consistency
-            
-            allGroups.forEach(group => {
-                const option = document.createElement('option');
-                option.value = group;
-                option.textContent = group;
-                if (group === selectedGroup) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
-            });
-            
-            select.addEventListener('change', (e) => {
-                selectedGroup = e.target.value;
-            });
-            
-            groupSelectionContainer.appendChild(select);
-        });
+    function openDeleteGroupModal(groupName) {
+        groupToDelete = groupName;
+        document.getElementById('deleteGroupText').textContent = `¿Seguro que quieres eliminar el grupo "${groupName}" y todos sus links? Esta acción es permanente.`;
+        deleteGroupModal.style.display = 'block';
     }
 
     // --- SEARCH --- //
 
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase();
-        document.querySelectorAll('.tag').forEach(tag => {
-            tag.style.display = tag.textContent.toLowerCase().includes(searchTerm) ? 'inline-flex' : 'none';
+        const tags = document.querySelectorAll('.tag');
+        const groups = document.querySelectorAll('.groups-container > div');
+
+        tags.forEach(tag => {
+            const isVisible = tag.textContent.toLowerCase().includes(searchTerm);
+            tag.style.display = isVisible ? 'flex' : 'none';
+        });
+
+        groups.forEach(group => {
+            const groupName = group.querySelector('.group-name').textContent.toLowerCase();
+            const hasVisibleTags = Array.from(group.querySelectorAll('.tag')).some(t => t.style.display !== 'none');
+            const isGroupMatch = groupName.includes(searchTerm);
+            
+            if(searchTerm.length > 0) { // Si hay búsqueda
+                group.style.display = hasVisibleTags || isGroupMatch ? 'block' : 'none';
+            } else { // Si no hay búsqueda
+                group.style.display = 'block';
+            }
         });
     });
 
     // --- INITIALIZATION --- //
     window.deleteTag = deleteTag;
+    window.openAddLinkModal = openAddLinkModal;
+    window.openDeleteGroupModal = openDeleteGroupModal;
     initRealtimeListener("linksBody");
 });

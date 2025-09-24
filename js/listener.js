@@ -1,52 +1,97 @@
 import { db } from './firebase.js';
 import { onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { openMany } from './actions.js';
 import { updateTagSeenStatus } from './crud.js';
-
-export function listenToGroups(callback) {
-  const q = query(collection(db, "groups"), orderBy("name"));
-  onSnapshot(q, (snapshot) => {
-    const groups = [];
-    snapshot.forEach((doc) => {
-      groups.push(doc.data().name);
-    });
-    callback(groups);
-  }, (error) => {
-    console.error("Error listening to groups collection: ", error);
-    callback([]); // Return empty array on error
-  });
-}
+import { showToast } from './utils.js';
 
 export function initRealtimeListener(containerId) {
   const container = document.getElementById(containerId);
-  const q = query(collection(db, "tags"), orderBy("createdAt", "desc"));
+  
+  const groupsQuery = query(collection(db, "groups"), orderBy("name", "asc"));
+  const tagsQuery = query(collection(db, "tags"), orderBy("createdAt", "desc"));
 
-  onSnapshot(q, (snapshot) => {
-    container.innerHTML = ""; 
-    const groups = {};
+  let groupsData = [];
+  let tagsData = [];
 
-    snapshot.forEach(doc => {
-      const tag = { id: doc.id, ...doc.data() };
-      if (!groups[tag.group]) {
-        groups[tag.group] = [];
+  const render = () => {
+    container.innerHTML = "";
+
+    const tagsByGroup = tagsData.reduce((acc, tag) => {
+      if (!acc[tag.group]) {
+        acc[tag.group] = [];
       }
-      groups[tag.group].push(tag);
-    });
+      acc[tag.group].push(tag);
+      return acc;
+    }, {});
 
-    // Get all group names for consistent ordering
-    const sortedGroupNames = Object.keys(groups).sort();
+    groupsData.forEach(group => {
+      const groupName = group.name;
+      const groupTags = tagsByGroup[groupName] || [];
 
-    sortedGroupNames.forEach(groupName => {
       const groupSection = document.createElement('div');
       
       const groupTab = document.createElement('div');
       groupTab.className = 'group-tab';
-      groupTab.textContent = groupName;
+      groupTab.title = `Abrir todos los links de "${groupName}"`;
+
+      groupTab.addEventListener('click', async (e) => {
+        if (e.target.closest('.group-actions')) {
+          return;
+        }
+
+        const urlsToOpen = groupTags.map(t => t.url).filter(Boolean);
+
+        if (urlsToOpen.length === 0) {
+          showToast(`No hay links para abrir en "${groupName}".`, 'info');
+          return;
+        }
+
+        try {
+          const openedCount = await openMany(urlsToOpen);
+          showToast(`Abriendo ${openedCount} links de "${groupName}".`, 'success');
+        } catch (err) {
+          console.error('Error abriendo links del grupo:', err);
+          showToast(err.message || 'No se pudieron abrir las pestañas.', 'error');
+        }
+      });
+
+      const groupNameEl = document.createElement('span');
+      groupNameEl.className = 'group-name';
+      groupNameEl.textContent = groupName;
+      groupTab.appendChild(groupNameEl);
+
+      const groupActions = document.createElement('div');
+      groupActions.className = 'group-actions';
+
+      const addLinkToGroupBtn = document.createElement('button');
+      addLinkToGroupBtn.className = 'button-styles';
+      addLinkToGroupBtn.textContent = '+';
+      addLinkToGroupBtn.title = `Agregar Link a ${groupName}`;
+      addLinkToGroupBtn.onclick = (e) => {
+        e.stopPropagation();
+        window.openAddLinkModal(groupName);
+      };
+      groupActions.appendChild(addLinkToGroupBtn);
+      
+      if (groupName !== 'General') {
+        const deleteGroupBtn = document.createElement('button');
+        deleteGroupBtn.className = 'button-styles delete-group-btn';
+        deleteGroupBtn.innerHTML = '−';
+        deleteGroupBtn.title = `Eliminar Grupo ${groupName}`;
+        deleteGroupBtn.onclick = (e) => {
+          e.stopPropagation();
+          window.openDeleteGroupModal(groupName);
+        };
+        groupActions.appendChild(deleteGroupBtn);
+      }
+
+      groupTab.appendChild(groupActions);
       groupSection.appendChild(groupTab);
 
       const groupContent = document.createElement('div');
       groupContent.className = 'group-content';
-      
-      groups[groupName].forEach(tag => {
+
+      groupTags.forEach(tag => {
         const tagEl = document.createElement('div');
         tagEl.className = 'tag';
         if (tag.seen) {
@@ -57,16 +102,16 @@ export function initRealtimeListener(containerId) {
         checkbox.type = 'checkbox';
         checkbox.className = 'seen-checkbox';
         checkbox.checked = tag.seen;
+        checkbox.title = tag.seen ? 'Marcar como no visto' : 'Marcar como visto';
         checkbox.addEventListener('change', (e) => {
             updateTagSeenStatus(tag.id, e.target.checked);
         });
 
         const linkEl = document.createElement('a');
         linkEl.textContent = tag.name;
-        if (tag.url) {
-            linkEl.href = tag.url;
-            linkEl.target = '_blank';
-        }
+        linkEl.title = tag.url;
+        linkEl.href = tag.url;
+        linkEl.target = '_blank';
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-tag';
@@ -82,8 +127,15 @@ export function initRealtimeListener(containerId) {
       groupSection.appendChild(groupContent);
       container.appendChild(groupSection);
     });
+  };
 
-  }, (error) => {
-    console.error("Error listening to collection: ", error);
-  });
+  onSnapshot(groupsQuery, (snapshot) => {
+    groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    render();
+  }, (error) => console.error("Error en listener de grupos: ", error));
+
+  onSnapshot(tagsQuery, (snapshot) => {
+    tagsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    render();
+  }, (error) => console.error("Error en listener de tags: ", error));
 }

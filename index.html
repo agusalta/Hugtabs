@@ -9,7 +9,8 @@
   <meta name="theme-color" content="#0b0f14" />
 
   <!-- Fuentes (opcional pero recomendado para el estilo ARC) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -20,11 +21,10 @@
     <!-- ===== Header ===== -->
     <header class="header" role="banner">
       <h1>
-        <!-- Mini logo arcoíris decorativo (no interfiere con tu JS) -->
-        <span aria-hidden="true" style="display:inline-block;width:0;height:0;overflow:hidden;"></span>
-        HubTags
+        <span class="arc-stripes" aria-hidden="true"></span>
+        HugTabs
       </h1>
-
+      
       <!-- Acciones rápidas (misma semántica; no se cambian ids/clases de botones) -->
       <nav aria-label="Acciones rápidas">
         <div class="search-add-wrapper">
@@ -40,9 +40,8 @@
               aria-label="Buscar links por nombre o URL">
           </div>
 
-          <!-- Mantengo ids/clases EXACTOS -->
-          <button id="addBtn" class="button-styles" title="Agregar Link" aria-label="Agregar Link">+</button>
-          <button id="addGroupBtn" class="button-styles" title="Agregar Grupo" aria-label="Agregar Grupo">G</button>
+          <!-- Botón unificado para "Agregar Grupo" -->
+          <button id="addGroupBtn" class="button-styles" title="Agregar Grupo" aria-label="Agregar Grupo">+</button>
         </div>
       </nav>
     </header>
@@ -65,18 +64,13 @@
       <button type="button" class="close-btn" aria-label="Cerrar">×</button>
       <form id="addForm" novalidate>
         <h2 id="addModalTitle">Agregar Nuevo Link</h2>
-        <p id="addModalDesc" class="visually-hidden">Complete el nombre, la URL y seleccione un grupo.</p>
+        <p id="addModalDesc" class="visually-hidden">Complete el nombre y la URL.</p>
 
         <label for="nameInput" class="visually-hidden">Nombre del Link</label>
         <input type="text" id="nameInput" placeholder="Nombre del Link" required class="input-styles" autocomplete="off" />
 
         <label for="urlInput" class="visually-hidden">URL del Link</label>
         <input type="url" id="urlInput" placeholder="URL del Link" required class="input-styles" inputmode="url" />
-
-        <div id="groupSelection" class="group-selection-container" role="group" aria-label="Selecciona un grupo">
-          <p>Selecciona un grupo:</p>
-          <!-- Group badges injected by JS -->
-        </div>
 
         <button type="submit" class="button-styles">Agregar</button>
       </form>
@@ -98,11 +92,24 @@
     </div>
   </div>
 
+  <!-- ===== Modal: Confirmar Eliminar Grupo ===== -->
+  <div id="deleteGroupModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteGroupTitle">
+    <div class="modal-content">
+        <button type="button" class="close-btn" aria-label="Cerrar">×</button>
+        <h2 id="deleteGroupTitle">Eliminar Grupo</h2>
+        <p id="deleteGroupText"></p>
+        <div class="form-actions">
+            <button id="cancelDeleteBtn" type="button" class="button-styles">Cancelar</button>
+            <button id="confirmDeleteBtn" type="button" class="button-styles button-danger">Eliminar</button>
+        </div>
+    </div>
+  </div>
+
   <!-- ===== Toasts ===== -->
   <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Tu JS sin cambios -->
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=1.2"></script>
 
   <!-- Utilidad de accesibilidad mínima (no rompe estilos existentes) -->
   <style>

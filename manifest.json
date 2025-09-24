@@ -12,12 +12,14 @@
     },
     "permissions": [
       "storage",
-      "sidePanel"
+      "sidePanel",
+      "tabs"
     ],
     "side_panel": {
       "default_path": "index.html",
       "openPanelOnActionClick": true
     },
+    "background": { "service_worker": "background.js" },
     "action": {
       "default_title": "Checkmate — abrir panel",
       "default_icon": {
