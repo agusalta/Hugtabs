@@ -1,0 +1,154 @@
+:root {
+  --bg:#FEF6F0;
+  --card-bg: #fff;
+  --text-color: #333;
+  --primary-color: #ff6b35;
+  --border-color: #eee;
+  --tag-bg: #f9f9f9;
+  --tag-border: #ddd;
+  --tag-hover: #f0f0f0;
+  --font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--bg);
+  font-family: var(--font-family);
+  color: var(--text-color);
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+}
+
+input {
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header h1::after {
+  content: 'H';
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.5rem;
+  margin-left: 0.8rem;
+}
+
+.main {
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-add-wrapper {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.search-wrapper {
+  flex-grow: 1;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px 0 0 12px;
+  font-size: 1rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border-right: none;
+}
+
+#searchInput:focus {
+  outline: none;
+}
+
+.add-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0 ;
+  padding: 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#addGroupBtn {
+  border-radius: 0 12px 12px 0;
+}
+
+/* Modal styles */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; 
+  background-color: rgba(0,0,0,0.4); 
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; 
+  padding: 2rem;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.close-btn {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#addForm h2 {
+  margin-top: 0;
+}
+
+#addForm input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+#addForm button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}

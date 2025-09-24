@@ -1,14 +1,61 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HubTags — Panel</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+  <header class="header">
+    <h1>HubTags</h1>
+  </header>
+
+  <main class="main">
+    <div class="search-add-wrapper">
+      <div class="search-wrapper">
+        <input type="search" id="searchInput" placeholder="SEARCH...">
+      </div>
+      <button id="addBtn" class="add-btn" title="Agregar Link">+</button>
+      <button id="addGroupBtn" class="add-btn" title="Agregar Grupo">G</button>
+    </div>
+
+    <section id="linksBody" class="groups-container">
+      <!-- Groups and tags will be rendered here by JavaScript -->
+    </section>
+  </main>
+
+  <!-- Modal para Agregar Link -->
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <form id="addForm">
+        <h2>Agregar Nuevo Link</h2>
+        <input type="text" id="nameInput" placeholder="Nombre del Link" required>
+        <input type="url" id="urlInput" placeholder="URL del Link" required>
+        <div id="groupSelection" class="group-selection-container">
+            <p>Selecciona un grupo:</p>
+            <!-- Group badges will be injected here by JS -->
+        </div>
+        <button type="submit">Agregar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Agregar Grupo -->
+  <div id="addGroupModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <form id="addGroupForm">
+          <h2>Agregar Nuevo Grupo</h2>
+          <input type="text" id="newGroupNameInput" placeholder="Nombre del Grupo" required>
+          <button type="submit">Crear Grupo</button>
+        </form>
+      </div>
+    </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
