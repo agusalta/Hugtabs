@@ -1,3 +1,4 @@
+
 import { addTag, deleteTag, addGroup } from './crud.js';
 import { showToast } from './utils.js';
 import { initRealtimeListener, listenToGroups } from './listener.js';
@@ -90,20 +91,24 @@ document.addEventListener('DOMContentLoaded', () => {
             groupSelectionContainer.innerHTML = '<p>Selecciona un grupo:</p>'; // Reset
             const allGroups = ['General', ...groups.filter(g => g !== 'General')];
             
+            const select = document.createElement('select');
+            select.className = 'group-select input-styles'; // Re-use existing style for consistency
+            
             allGroups.forEach(group => {
-                const badge = document.createElement('span');
-                badge.className = 'group-badge';
-                badge.textContent = group;
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
                 if (group === selectedGroup) {
-                    badge.classList.add('selected');
+                    option.selected = true;
                 }
-                badge.addEventListener('click', () => {
-                    selectedGroup = group;
-                    document.querySelectorAll('.group-badge').forEach(b => b.classList.remove('selected'));
-                    badge.classList.add('selected');
-                });
-                groupSelectionContainer.appendChild(badge);
+                select.appendChild(option);
             });
+            
+            select.addEventListener('change', (e) => {
+                selectedGroup = e.target.value;
+            });
+            
+            groupSelectionContainer.appendChild(select);
         });
     }
 

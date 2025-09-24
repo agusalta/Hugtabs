@@ -1,5 +1,6 @@
 import { db } from './firebase.js';
 import { onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { updateTagSeenStatus } from './crud.js';
 
 export function listenToGroups(callback) {
   const q = query(collection(db, "groups"), orderBy("name"));
@@ -48,6 +49,17 @@ export function initRealtimeListener(containerId) {
       groups[groupName].forEach(tag => {
         const tagEl = document.createElement('div');
         tagEl.className = 'tag';
+        if (tag.seen) {
+            tagEl.classList.add('seen');
+        }
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'seen-checkbox';
+        checkbox.checked = tag.seen;
+        checkbox.addEventListener('change', (e) => {
+            updateTagSeenStatus(tag.id, e.target.checked);
+        });
 
         const linkEl = document.createElement('a');
         linkEl.textContent = tag.name;
@@ -61,6 +73,7 @@ export function initRealtimeListener(containerId) {
         deleteBtn.textContent = '×';
         deleteBtn.onclick = () => window.deleteTag(tag.id);
 
+        tagEl.appendChild(checkbox);
         tagEl.appendChild(linkEl);
         tagEl.appendChild(deleteBtn);
         groupContent.appendChild(tagEl);

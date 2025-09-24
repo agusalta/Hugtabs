@@ -1,5 +1,5 @@
 import { db } from './firebase.js';
-import { collection, addDoc, deleteDoc, doc, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, deleteDoc, doc, serverTimestamp, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showToast } from './utils.js';
 
 // Function to add a new group
@@ -29,6 +29,7 @@ export async function addTag(group, name, url) {
       group: group,
       name: name,
       url: url,
+      seen: false, // Initial seen status
       createdAt: serverTimestamp()
     });
     showToast(`Tag "${name}" agregado al grupo "${group}".`, 'success');
@@ -47,4 +48,17 @@ export async function deleteTag(id) {
     console.error("Error deleting document: ", error);
     showToast("Error al eliminar el tag.", 'error');
   }
+}
+
+// Function to update the seen status of a tag
+export async function updateTagSeenStatus(id, seen) {
+    try {
+        const tagRef = doc(db, "tags", id);
+        await updateDoc(tagRef, {
+            seen: seen
+        });
+    } catch (error) {
+        console.error("Error updating tag status: ", error);
+        showToast("Error al actualizar el estado del tag.", 'error');
+    }
 }

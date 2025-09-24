@@ -1,61 +1,114 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HubTags — Panel</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HugTabs — Panel</title>
+
+  <!-- Tema del navegador (mejora look del sidebar) -->
+  <meta name="theme-color" content="#0b0f14" />
+
+  <!-- Fuentes (opcional pero recomendado para el estilo ARC) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="header">
-    <h1>HubTags</h1>
-  </header>
+  <!-- Contenedor del panel (no cambia nombres existentes) -->
+  <div class="panel">
 
-  <main class="main">
-    <div class="search-add-wrapper">
-      <div class="search-wrapper">
-        <input type="search" id="searchInput" placeholder="SEARCH...">
-      </div>
-      <button id="addBtn" class="add-btn" title="Agregar Link">+</button>
-      <button id="addGroupBtn" class="add-btn" title="Agregar Grupo">G</button>
-    </div>
+    <!-- ===== Header ===== -->
+    <header class="header" role="banner">
+      <h1>
+        <!-- Mini logo arcoíris decorativo (no interfiere con tu JS) -->
+        <span aria-hidden="true" style="display:inline-block;width:0;height:0;overflow:hidden;"></span>
+        HubTags
+      </h1>
 
-    <section id="linksBody" class="groups-container">
-      <!-- Groups and tags will be rendered here by JavaScript -->
-    </section>
-  </main>
+      <!-- Acciones rápidas (misma semántica; no se cambian ids/clases de botones) -->
+      <nav aria-label="Acciones rápidas">
+        <div class="search-add-wrapper">
+          <div class="search-wrapper">
+            <label for="searchInput" class="visually-hidden">Buscar links</label>
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="SEARCH..."
+              class="input-styles"
+              autocomplete="off"
+              inputmode="search"
+              aria-label="Buscar links por nombre o URL">
+          </div>
 
-  <!-- Modal para Agregar Link -->
-  <div id="addModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <form id="addForm">
-        <h2>Agregar Nuevo Link</h2>
-        <input type="text" id="nameInput" placeholder="Nombre del Link" required>
-        <input type="url" id="urlInput" placeholder="URL del Link" required>
-        <div id="groupSelection" class="group-selection-container">
-            <p>Selecciona un grupo:</p>
-            <!-- Group badges will be injected here by JS -->
+          <!-- Mantengo ids/clases EXACTOS -->
+          <button id="addBtn" class="button-styles" title="Agregar Link" aria-label="Agregar Link">+</button>
+          <button id="addGroupBtn" class="button-styles" title="Agregar Grupo" aria-label="Agregar Grupo">G</button>
         </div>
-        <button type="submit">Agregar</button>
+      </nav>
+    </header>
+
+    <!-- ===== Contenido principal ===== -->
+    <main class="main" role="main">
+      <!-- Filtro activo / contador (opcional para UX; sin romper nada) -->
+      <section aria-live="polite" aria-atomic="true" class="filters-summary" style="display:none;"></section>
+
+      <!-- Contenedor de grupos (IDs/clases intactos) -->
+      <section id="linksBody" class="groups-container" aria-label="Grupos y enlaces">
+        <!-- Groups and tags will be rendered here by JavaScript -->
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== Modal: Agregar Link ===== -->
+  <div id="addModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle" aria-describedby="addModalDesc">
+    <div class="modal-content">
+      <button type="button" class="close-btn" aria-label="Cerrar">×</button>
+      <form id="addForm" novalidate>
+        <h2 id="addModalTitle">Agregar Nuevo Link</h2>
+        <p id="addModalDesc" class="visually-hidden">Complete el nombre, la URL y seleccione un grupo.</p>
+
+        <label for="nameInput" class="visually-hidden">Nombre del Link</label>
+        <input type="text" id="nameInput" placeholder="Nombre del Link" required class="input-styles" autocomplete="off" />
+
+        <label for="urlInput" class="visually-hidden">URL del Link</label>
+        <input type="url" id="urlInput" placeholder="URL del Link" required class="input-styles" inputmode="url" />
+
+        <div id="groupSelection" class="group-selection-container" role="group" aria-label="Selecciona un grupo">
+          <p>Selecciona un grupo:</p>
+          <!-- Group badges injected by JS -->
+        </div>
+
+        <button type="submit" class="button-styles">Agregar</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal para Agregar Grupo -->
-  <div id="addGroupModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <form id="addGroupForm">
-          <h2>Agregar Nuevo Grupo</h2>
-          <input type="text" id="newGroupNameInput" placeholder="Nombre del Grupo" required>
-          <button type="submit">Crear Grupo</button>
-        </form>
-      </div>
+  <!-- ===== Modal: Agregar Grupo ===== -->
+  <div id="addGroupModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="addGroupTitle">
+    <div class="modal-content">
+      <button type="button" class="close-btn" aria-label="Cerrar">×</button>
+      <form id="addGroupForm" novalidate>
+        <h2 id="addGroupTitle">Agregar Nuevo Grupo</h2>
+
+        <label for="newGroupNameInput" class="visually-hidden">Nombre del Grupo</label>
+        <input type="text" id="newGroupNameInput" placeholder="Nombre del Grupo" required class="input-styles" autocomplete="off" />
+
+        <button type="submit" class="button-styles">Crear Grupo</button>
+      </form>
     </div>
+  </div>
 
-  <div id="toastContainer" class="toast-container"></div>
+  <!-- ===== Toasts ===== -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- Tu JS sin cambios -->
   <script type="module" src="js/main.js"></script>
+
+  <!-- Utilidad de accesibilidad mínima (no rompe estilos existentes) -->
+  <style>
+    .visually-hidden{
+      position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0
+    }
+  </style>
 </body>
 </html>
