@@ -16,9 +16,10 @@
     "action": {
       "default_title": "Checkmate — abrir panel",
       "default_icon": {
-        "16": "images/icon16.png",
-        "32": "images/icon32.png",
-        "48": "images/icon48.png"
+        "16": "icons/icon16.jpeg",
+        "32": "icons/icon32.jpeg",
+        "48": "icons/icon48.jpeg",
+        "128":"icons/icon128.jpeg"
       }
     }
   }
