@@ -1,7 +1,6 @@
 
-import { addTag, addGroup, deleteTag, deleteGroup } from './crud.js';
+import { addTag, addGroup, deleteTag, deleteGroup, getTags, getGroups } from './crud.js';
 import { showToast } from './utils.js';
-import { initRealtimeListener } from './listener.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Buttons
@@ -27,8 +26,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const newGroupNameInput = document.getElementById("newGroupNameInput");
     const searchInput = document.getElementById("searchInput");
 
+    // container
+    const linksBody = document.getElementById('linksBody');
+
+
     let selectedGroup = null;
     let groupToDelete = null;
+
+    // --- RENDER --- //
+    const renderData = async () => {
+        linksBody.innerHTML = '';
+        const groups = await getGroups();
+        const tags = await getTags();
+
+        groups.forEach(group => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'group';
+            const groupTags = tags.filter(tag => tag.group === group.name);
+
+            groupDiv.innerHTML = `
+                <div class="group-header">
+                    <h2 class="group-name">${group.name}</h2>
+                    <div class="group-actions">
+                        <button class="add-link-btn" onclick="openAddLinkModal('${group.name}')">+</button>
+                        <button class="delete-group-btn" onclick="openDeleteGroupModal('${group.name}')">x</button>
+                    </div>
+                </div>
+                <div class="tags-container">
+                    ${groupTags.map(tag => `
+                        <div class="tag" data-tag-id="${tag.id}">
+                            <a href="${tag.url}" target="_blank">${tag.name}</a>
+                            <button class="delete-tag-btn" onclick="deleteTagHandler('${tag.id}')">x</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            linksBody.appendChild(groupDiv);
+        });
+    }
+
 
     // --- MODAL VISIBILITY --- //
 
@@ -68,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         await addTag(selectedGroup, name, url);
+        await renderData();
 
         addModal.style.display = "none";
         addForm.reset();
@@ -77,7 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const groupName = newGroupNameInput.value.trim();
         if (groupName) {
-            await addGroup(groupName);
+            try {
+                await addGroup(groupName);
+                await renderData();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
             addGroupModal.style.display = "none";
             addGroupForm.reset();
         }
@@ -86,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmDeleteBtn.addEventListener('click', async () => {
         if (groupToDelete) {
             await deleteGroup(groupToDelete);
+            await renderData();
             showToast(`Grupo "${groupToDelete}" eliminado.`, 'info');
             deleteGroupModal.style.display = 'none';
             groupToDelete = null;
@@ -94,24 +137,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- MODAL TRIGGER FUNCTIONS --- //
     
-    function openAddLinkModal(groupName) {
+    window.openAddLinkModal = (groupName) => {
         selectedGroup = groupName;
         document.getElementById('addModalTitle').textContent = `Agregar Link a ${groupName}`;
         addModal.style.display = "block";
     }
 
-    function openDeleteGroupModal(groupName) {
+    window.openDeleteGroupModal = (groupName) => {
         groupToDelete = groupName;
         document.getElementById('deleteGroupText').textContent = `¿Seguro que quieres eliminar el grupo "${groupName}" y todos sus links? Esta acción es permanente.`;
         deleteGroupModal.style.display = 'block';
     }
+
+    window.deleteTagHandler = async (tagId) => {
+        await deleteTag(tagId);
+        await renderData();
+        showToast('Link eliminado.', 'info');
+    };
 
     // --- SEARCH --- //
 
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase();
         const tags = document.querySelectorAll('.tag');
-        const groups = document.querySelectorAll('.groups-container > div');
+        const groups = document.querySelectorAll('.group');
 
         tags.forEach(tag => {
             const isVisible = tag.textContent.toLowerCase().includes(searchTerm);
@@ -123,17 +172,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasVisibleTags = Array.from(group.querySelectorAll('.tag')).some(t => t.style.display !== 'none');
             const isGroupMatch = groupName.includes(searchTerm);
             
-            if(searchTerm.length > 0) { // Si hay búsqueda
+            if(searchTerm.length > 0) {
                 group.style.display = hasVisibleTags || isGroupMatch ? 'block' : 'none';
-            } else { // Si no hay búsqueda
+            } else {
                 group.style.display = 'block';
             }
         });
     });
 
     // --- INITIALIZATION --- //
-    window.deleteTag = deleteTag;
-    window.openAddLinkModal = openAddLinkModal;
-    window.openDeleteGroupModal = openDeleteGroupModal;
-    initRealtimeListener("linksBody");
+    renderData();
 });

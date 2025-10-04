@@ -5,9 +5,8 @@
     "version": "1.0.0",
     "description": "Lista diaria de URLs en el Side Panel — revisalas cada día.",
     "permissions": [
-      "storage",
       "sidePanel",
-      "tabs"
+      "storage"
     ],
     "side_panel": {
       "default_path": "index.html",
