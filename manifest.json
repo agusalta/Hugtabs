@@ -19,6 +19,15 @@
       "openPanelOnActionClick": true
     },
     "background": { "service_worker": "background.js" },
+  "commands": {
+    "open_sidepanel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Abrir panel lateral de HugTabs"
+    }
+  },
     "action": {
       "default_title": "Checkmate — abrir panel",
       "default_icon": {
