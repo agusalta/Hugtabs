@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         groups.forEach(group => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'group-container';
-            groupDiv.setAttribute('draggable', 'true');
             groupDiv.dataset.groupName = group.name;
             const groupTags = tags.filter(tag => tag.group === group.name);
 
@@ -65,53 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function initDragAndDrop() {
-        let dragSrcEl = null;
-        let isDraggingGroup = false;
-
-        linksBody.addEventListener('dragstart', e => {
-            const container = e.target.closest('.group-container');
-            const fromHeader = e.target.closest('.group-header');
-            if (!container || !fromHeader) {
-                e.preventDefault();
-                return;
-            }
-            dragSrcEl = container;
-            isDraggingGroup = true;
-            e.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => {
-                dragSrcEl.classList.add('dragging');
-            }, 0);
-        });
-
-        linksBody.addEventListener('dragover', e => {
-            e.preventDefault();
-            const target = e.target.closest('.group-container');
-            if (target && target !== dragSrcEl) {
-                const rect = target.getBoundingClientRect();
-                const next = (e.clientY - rect.top) / rect.height > 0.5;
-                linksBody.insertBefore(dragSrcEl, next ? target.nextSibling : target);
-            }
-        });
-
-        linksBody.addEventListener('dragend', async () => {
-            if (dragSrcEl) {
-                dragSrcEl.classList.remove('dragging');
-                const newOrder = Array.from(linksBody.querySelectorAll('.group-container')).map(node => node.dataset.groupName);
-                await reorderGroups(newOrder);
-            }
-            dragSrcEl = null;
-            isDraggingGroup = false;
-        });
-
-        // Bloquea clicks (incluye <a>) mientras se está arrastrando un grupo
-        linksBody.addEventListener('click', (e) => {
-            if (isDraggingGroup) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-    }
+    // Eliminado: DnD nativo. Usamos SortableJS.
 
     const openAddLinkModal = (groupName) => {
         selectedGroup = groupName;
@@ -251,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderData();
-    // Inicializa SortableJS si está disponible; si no, usa fallback nativo
+    // Inicializa SortableJS
     if (window.Sortable) {
         new Sortable(linksBody, {
             animation: 120,
@@ -264,7 +217,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 await reorderGroups(newOrder);
             }
         });
-    } else {
-        initDragAndDrop();
     }
 });
