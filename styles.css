@@ -144,6 +144,12 @@
   /* =================================
      Groups & Tags
      ================================= */
+     .group-container {
+      margin-bottom: var(--gap);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
   .groups-container{ display:grid; gap: 12px }
   
   /* Tab del grupo: compacto, con banda lateral del arco */

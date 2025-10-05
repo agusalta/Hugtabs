@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedGroup = null;
     let groupToDelete = null;
 
-    // --- RENDER --- //
     const renderData = async () => {
         linksBody.innerHTML = '';
         const groups = await getGroups();
@@ -41,22 +40,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         groups.forEach(group => {
             const groupDiv = document.createElement('div');
-            groupDiv.className = 'group';
+            groupDiv.className = 'group-container';
             const groupTags = tags.filter(tag => tag.group === group.name);
 
             groupDiv.innerHTML = `
                 <div class="group-header">
                     <h2 class="group-name">${group.name}</h2>
                     <div class="group-actions">
-                        <button class="add-link-btn" onclick="openAddLinkModal('${group.name}')">+</button>
-                        <button class="delete-group-btn" onclick="openDeleteGroupModal('${group.name}')">x</button>
+                        <button class="add-link-btn" data-group-name="${group.name}">+</button>
+                        <button class="delete-group-btn" data-group-name="${group.name}">x</button>
                     </div>
                 </div>
                 <div class="tags-container">
                     ${groupTags.map(tag => `
                         <div class="tag" data-tag-id="${tag.id}">
                             <a href="${tag.url}" target="_blank">${tag.name}</a>
-                            <button class="delete-tag-btn" onclick="deleteTagHandler('${tag.id}')">x</button>
+                            <button class="delete-tag-btn" data-tag-id="${tag.id}">x</button>
                         </div>
                     `).join('')}
                 </div>
@@ -65,8 +64,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const openAddLinkModal = (groupName) => {
+        selectedGroup = groupName;
+        document.getElementById('addModalTitle').textContent = `Agregar Link a ${groupName}`;
+        addModal.style.display = "block";
+    }
 
-    // --- MODAL VISIBILITY --- //
+    const openDeleteGroupModal = (groupName) => {
+        groupToDelete = groupName;
+        document.getElementById('deleteGroupText').textContent = `¿Seguro que quieres eliminar el grupo "${groupName}" y todos sus links? Esta acción es permanente.`;
+        deleteGroupModal.style.display = 'block';
+    }
+
+    const deleteTagHandler = async (tagId) => {
+        await deleteTag(tagId);
+        await renderData();
+        showToast('Link eliminado.', 'info');
+    };
+
+    linksBody.addEventListener('click', async (event) => {
+        const target = event.target;
+
+        if (target.classList.contains('add-link-btn')) {
+            const groupName = target.dataset.groupName;
+            openAddLinkModal(groupName);
+        }
+
+        if (target.classList.contains('delete-group-btn')) {
+            const groupName = target.dataset.groupName;
+            openDeleteGroupModal(groupName);
+        }
+
+        if (target.classList.contains('delete-tag-btn')) {
+            const tagId = target.dataset.tagId;
+            await deleteTagHandler(tagId);
+        }
+    });
 
     addGroupBtn.addEventListener('click', () => {
         addGroupModal.style.display = "block";
@@ -90,8 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelDeleteBtn.addEventListener('click', () => {
         deleteGroupModal.style.display = 'none';
     });
-
-    // --- FORM SUBMISSIONS --- //
 
     addForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -134,33 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             groupToDelete = null;
         }
     });
-    
-    // --- MODAL TRIGGER FUNCTIONS --- //
-    
-    window.openAddLinkModal = (groupName) => {
-        selectedGroup = groupName;
-        document.getElementById('addModalTitle').textContent = `Agregar Link a ${groupName}`;
-        addModal.style.display = "block";
-    }
-
-    window.openDeleteGroupModal = (groupName) => {
-        groupToDelete = groupName;
-        document.getElementById('deleteGroupText').textContent = `¿Seguro que quieres eliminar el grupo "${groupName}" y todos sus links? Esta acción es permanente.`;
-        deleteGroupModal.style.display = 'block';
-    }
-
-    window.deleteTagHandler = async (tagId) => {
-        await deleteTag(tagId);
-        await renderData();
-        showToast('Link eliminado.', 'info');
-    };
-
-    // --- SEARCH --- //
 
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.toLowerCase();
         const tags = document.querySelectorAll('.tag');
-        const groups = document.querySelectorAll('.group');
+        const groups = document.querySelectorAll('.group-container');
 
         tags.forEach(tag => {
             const isVisible = tag.textContent.toLowerCase().includes(searchTerm);
@@ -171,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const groupName = group.querySelector('.group-name').textContent.toLowerCase();
             const hasVisibleTags = Array.from(group.querySelectorAll('.tag')).some(t => t.style.display !== 'none');
             const isGroupMatch = groupName.includes(searchTerm);
-            
+
             if(searchTerm.length > 0) {
                 group.style.display = hasVisibleTags || isGroupMatch ? 'block' : 'none';
             } else {
@@ -180,6 +189,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- INITIALIZATION --- //
     renderData();
 });
