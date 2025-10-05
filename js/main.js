@@ -151,6 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
             await deleteTagHandler(tagId);
             return;
         }
+
+        // Bloquea cualquier click en el header del grupo que no sea sobre sus botones
+        const header = target.closest('.group-header');
+        const inActions = target.closest('.group-actions');
+        if (header && !inActions) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
     });
 
     addGroupBtn.addEventListener('click', () => {
@@ -242,5 +251,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderData();
-    initDragAndDrop();
+    // Inicializa SortableJS si está disponible; si no, usa fallback nativo
+    if (window.Sortable) {
+        new Sortable(linksBody, {
+            animation: 120,
+            handle: '.group-header',
+            draggable: '.group-container',
+            ghostClass: 'drag-ghost',
+            onEnd: async () => {
+                const newOrder = Array.from(linksBody.querySelectorAll('.group-container'))
+                    .map(node => node.dataset.groupName);
+                await reorderGroups(newOrder);
+            }
+        });
+    } else {
+        initDragAndDrop();
+    }
 });
