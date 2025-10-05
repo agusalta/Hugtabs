@@ -78,21 +78,21 @@ export const addGroup = async (groupName) => {
 // --- READ --- //
 
 export const getTags = async () => {
-    try {
-        return await getTagsFromStorage();
-    } catch (error) {
-        console.error("Error getting tags: ", error);
-        throw new Error("No se pudieron obtener los links.");
-    }
+  try {
+    return await getTagsFromStorage();
+  } catch (error) {
+    console.error("Error getting tags: ", error);
+    throw new Error("No se pudieron obtener los links.");
+  }
 }
 
 export const getGroups = async () => {
-    try {
-        return await getGroupsFromStorage();
-    } catch (error) {
-        console.error("Error getting groups: ", error);
-        throw new Error("No se pudieron obtener los grupos.");
-    }
+  try {
+    return await getGroupsFromStorage();
+  } catch (error) {
+    console.error("Error getting groups: ", error);
+    throw new Error("No se pudieron obtener los grupos.");
+  }
 }
 
 
@@ -132,15 +132,39 @@ export const deleteGroup = async (groupName) => {
 // --- UPDATE --- //
 
 export const updateTagSeenStatus = async (tagId, seen) => {
-    try {
-        let tags = await getTagsFromStorage();
-        const tagIndex = tags.findIndex(tag => tag.id === tagId);
-        if (tagIndex !== -1) {
-            tags[tagIndex].seen = seen;
-            await saveTagsToStorage(tags);
-        }
-    } catch (error) {
-        console.error("Error updating tag status: ", error);
-        // En este caso, no lanzamos error para no ser intrusivos.
+  try {
+    let tags = await getTagsFromStorage();
+    const tagIndex = tags.findIndex(tag => tag.id === tagId);
+    if (tagIndex !== -1) {
+      tags[tagIndex].seen = seen;
+      await saveTagsToStorage(tags);
     }
+  } catch (error) {
+    console.error("Error updating tag status: ", error);
+    // En este caso, no lanzamos error para no ser intrusivos.
+  }
+};
+
+// --- ORDER --- //
+// Reordenar grupos según un arreglo de nombres en el orden deseado
+export const reorderGroups = async (orderedGroupNames) => {
+  try {
+    const groups = await getGroupsFromStorage();
+    const nameToGroup = new Map(groups.map(g => [g.name, g]));
+    const ordered = [];
+    for (const name of orderedGroupNames) {
+      const g = nameToGroup.get(name);
+      if (g) {
+        ordered.push(g);
+        nameToGroup.delete(name);
+      }
+    }
+    for (const rest of nameToGroup.values()) {
+      ordered.push(rest);
+    }
+    await saveGroupsToStorage(ordered);
+  } catch (error) {
+    console.error("Error reordenando grupos: ", error);
+    throw new Error("No se pudo reordenar los grupos.");
+  }
 };

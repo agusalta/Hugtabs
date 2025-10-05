@@ -1,5 +1,5 @@
 
-import { addTag, addGroup, deleteTag, deleteGroup, getTags, getGroups } from './crud.js';
+import { addTag, addGroup, deleteTag, deleteGroup, getTags, getGroups, reorderGroups } from './crud.js';
 import { showToast } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         groups.forEach(group => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'group-container';
+            groupDiv.setAttribute('draggable', 'true');
+            groupDiv.dataset.groupName = group.name;
             const groupTags = tags.filter(tag => tag.group === group.name);
 
             groupDiv.innerHTML = `
@@ -62,6 +64,55 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             linksBody.appendChild(groupDiv);
         });
+
+        // Drag & Drop para reordenar grupos
+        initDragAndDrop();
+    }
+
+    function initDragAndDrop() {
+        const draggables = linksBody.querySelectorAll('.group-container[draggable="true"]');
+        let dragSrc = null;
+
+        draggables.forEach(el => {
+            el.addEventListener('dragstart', (e) => {
+                dragSrc = el;
+                e.dataTransfer.effectAllowed = 'move';
+                el.classList.add('dragging');
+            });
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+                dragSrc = null;
+            });
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const afterElement = getDragAfterElement(linksBody, e.clientY);
+                if (afterElement == null) {
+                    linksBody.appendChild(el);
+                } else if (afterElement !== el) {
+                    linksBody.insertBefore(el, afterElement);
+                }
+            });
+        });
+
+        linksBody.addEventListener('drop', async () => {
+            const newOrder = Array.from(linksBody.querySelectorAll('.group-container'))
+                .map(node => node.dataset.groupName);
+            await reorderGroups(newOrder);
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const elements = [...container.querySelectorAll('.group-container:not(.dragging)')];
+        return elements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
     const openAddLinkModal = (groupName) => {
@@ -181,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasVisibleTags = Array.from(group.querySelectorAll('.tag')).some(t => t.style.display !== 'none');
             const isGroupMatch = groupName.includes(searchTerm);
 
-            if(searchTerm.length > 0) {
+            if (searchTerm.length > 0) {
                 group.style.display = hasVisibleTags || isGroupMatch ? 'block' : 'none';
             } else {
                 group.style.display = 'block';
