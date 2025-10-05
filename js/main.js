@@ -67,16 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initDragAndDrop() {
         let dragSrcEl = null;
+        let isDraggingGroup = false;
 
         linksBody.addEventListener('dragstart', e => {
-            const target = e.target.closest('.group-container');
-            if (target) {
-                dragSrcEl = target;
-                e.dataTransfer.effectAllowed = 'move';
-                setTimeout(() => {
-                    dragSrcEl.classList.add('dragging');
-                }, 0);
+            const container = e.target.closest('.group-container');
+            const fromHeader = e.target.closest('.group-header');
+            if (!container || !fromHeader) {
+                e.preventDefault();
+                return;
             }
+            dragSrcEl = container;
+            isDraggingGroup = true;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => {
+                dragSrcEl.classList.add('dragging');
+            }, 0);
         });
 
         linksBody.addEventListener('dragover', e => {
@@ -94,9 +99,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 dragSrcEl.classList.remove('dragging');
                 const newOrder = Array.from(linksBody.querySelectorAll('.group-container')).map(node => node.dataset.groupName);
                 await reorderGroups(newOrder);
-                dragSrcEl = null;
             }
+            dragSrcEl = null;
+            isDraggingGroup = false;
         });
+
+        // Bloquea clicks (incluye <a>) mientras se está arrastrando un grupo
+        linksBody.addEventListener('click', (e) => {
+            if (isDraggingGroup) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
     }
 
     const openAddLinkModal = (groupName) => {

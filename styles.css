@@ -171,7 +171,9 @@
     position:relative; 
     overflow:hidden;
     transition: background var(--speed), border-color var(--speed);
+    cursor: grab;
   }
+  .group-header:active{ cursor: grabbing }
   .group-tab:hover,
   .group-header:hover{ border-color: #2a3646 }
   .group-tab::before,
@@ -186,6 +188,13 @@
         var(--arc-orange) 60% 80%,
         var(--arc-pink) 80% 100%
       );
+  }
+
+  /* Estado visual durante drag */
+  .group-container.dragging{
+    opacity: .9;
+    outline: 2px solid #243141;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35);
   }
   
   .group-actions {
