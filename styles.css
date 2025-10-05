@@ -49,16 +49,14 @@
      Header (logo + arco de líneas)
      ================================= */
   .header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 16px;
     background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 8px 10px;
-    flex-direction: row;     /* estable en fila */
-    flex-wrap: wrap;         /* permite bajar de línea si falta espacio */
   }
   
   .header h1{
@@ -144,13 +142,17 @@
   /* =================================
      Groups & Tags
      ================================= */
-     .group-container {
+    .group-container {
       margin-bottom: 6px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       overflow: hidden;
     }
-  .groups-container{ display:grid; gap: 8px }
+    .group-container.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+    }
+  .groups-container{ display:grid; gap: 16px }
   
   /* Tab del grupo: compacto, con banda lateral del arco */
   .group-tab,
@@ -165,7 +167,9 @@
     background: var(--bg-elev);
     border: 1px solid var(--border);
     display:flex; align-items:center; justify-content:space-between;
-    cursor:pointer; position:relative; overflow:hidden;
+    cursor: grab;
+    position:relative; 
+    overflow:hidden;
     transition: background var(--speed), border-color var(--speed);
   }
   .group-tab:hover,
@@ -200,8 +204,16 @@
     line-height: 1;
   }
   
-  .delete-group-btn{ background:transparent; color:#9db0c1; font-size:14px; line-height:1; padding:0 6px }
-  .delete-group-btn:hover{ color:#e6a4b8; background:transparent; filter:none }
+  .delete-group-btn {
+    background: transparent;
+    color: #9db0c1;
+    font-size: 20px;
+  }
+  .delete-group-btn:hover {
+    color: #e6a4b8;
+    background: transparent;
+    filter: none;
+  }
   
   /* Contenido del grupo */
   .group-content,
@@ -236,8 +248,6 @@
     padding: 4px 6px;
     transition: background var(--speed), border-color var(--speed);
   }
-  /* Normaliza inputs dentro de tags para que no se oculten */
-  .tag input[type="checkbox"]{ width: 14px; height: 14px; margin-right: 6px; accent-color: var(--arc-cyan) }
   
   .tag a{
     flex: 1 1 auto;

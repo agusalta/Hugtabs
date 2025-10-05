@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // container
     const linksBody = document.getElementById('linksBody');
 
-
     let selectedGroup = null;
     let groupToDelete = null;
 
@@ -64,55 +63,40 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             linksBody.appendChild(groupDiv);
         });
-
-        // Drag & Drop para reordenar grupos
-        initDragAndDrop();
     }
 
     function initDragAndDrop() {
-        const draggables = linksBody.querySelectorAll('.group-container[draggable="true"]');
-        let dragSrc = null;
+        let dragSrcEl = null;
 
-        draggables.forEach(el => {
-            el.addEventListener('dragstart', (e) => {
-                dragSrc = el;
+        linksBody.addEventListener('dragstart', e => {
+            const target = e.target.closest('.group-container');
+            if (target) {
+                dragSrcEl = target;
                 e.dataTransfer.effectAllowed = 'move';
-                el.classList.add('dragging');
-            });
-            el.addEventListener('dragend', () => {
-                el.classList.remove('dragging');
-                dragSrc = null;
-            });
-            el.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                const afterElement = getDragAfterElement(linksBody, e.clientY);
-                if (afterElement == null) {
-                    linksBody.appendChild(el);
-                } else if (afterElement !== el) {
-                    linksBody.insertBefore(el, afterElement);
-                }
-            });
-        });
-
-        linksBody.addEventListener('drop', async () => {
-            const newOrder = Array.from(linksBody.querySelectorAll('.group-container'))
-                .map(node => node.dataset.groupName);
-            await reorderGroups(newOrder);
-        });
-    }
-
-    function getDragAfterElement(container, y) {
-        const elements = [...container.querySelectorAll('.group-container:not(.dragging)')];
-        return elements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset, element: child };
-            } else {
-                return closest;
+                setTimeout(() => {
+                    dragSrcEl.classList.add('dragging');
+                }, 0);
             }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
+        });
+
+        linksBody.addEventListener('dragover', e => {
+            e.preventDefault();
+            const target = e.target.closest('.group-container');
+            if (target && target !== dragSrcEl) {
+                const rect = target.getBoundingClientRect();
+                const next = (e.clientY - rect.top) / rect.height > 0.5;
+                linksBody.insertBefore(dragSrcEl, next ? target.nextSibling : target);
+            }
+        });
+
+        linksBody.addEventListener('dragend', async () => {
+            if (dragSrcEl) {
+                dragSrcEl.classList.remove('dragging');
+                const newOrder = Array.from(linksBody.querySelectorAll('.group-container')).map(node => node.dataset.groupName);
+                await reorderGroups(newOrder);
+                dragSrcEl = null;
+            }
+        });
     }
 
     const openAddLinkModal = (groupName) => {
@@ -139,16 +123,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.classList.contains('add-link-btn')) {
             const groupName = target.dataset.groupName;
             openAddLinkModal(groupName);
+            return;
         }
 
         if (target.classList.contains('delete-group-btn')) {
             const groupName = target.dataset.groupName;
             openDeleteGroupModal(groupName);
+            return;
         }
 
         if (target.classList.contains('delete-tag-btn')) {
             const tagId = target.dataset.tagId;
             await deleteTagHandler(tagId);
+            return;
         }
     });
 
@@ -241,4 +228,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderData();
+    initDragAndDrop();
 });
