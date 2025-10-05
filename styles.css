@@ -161,6 +161,7 @@
     font-family: var(--font-heading);
     text-transform: uppercase;
     letter-spacing:.05em;
+    font-size: 13px;
     background: var(--bg-elev);
     border: 1px solid var(--border);
     display:flex; align-items:center; justify-content:space-between;
