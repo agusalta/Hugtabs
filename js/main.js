@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'group-container';
             groupDiv.dataset.groupName = group.name;
+            groupDiv.setAttribute('draggable', 'true');
             const groupTags = tags.filter(tag => tag.group === group.name);
 
             groupDiv.innerHTML = `
@@ -64,7 +65,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Eliminado: DnD nativo. Usamos SortableJS.
+    // Fallback DnD nativo (si no hay Sortable)
+    function initDragAndDrop() {
+        let dragSrcEl = null;
+        let isDraggingGroup = false;
+
+        linksBody.addEventListener('dragstart', e => {
+            const container = e.target.closest('.group-container');
+            const fromHeader = e.target.closest('.group-header');
+            if (!container || !fromHeader) {
+                e.preventDefault();
+                return;
+            }
+            dragSrcEl = container;
+            isDraggingGroup = true;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => {
+                dragSrcEl.classList.add('dragging');
+            }, 0);
+        });
+
+        linksBody.addEventListener('dragover', e => {
+            e.preventDefault();
+            const target = e.target.closest('.group-container');
+            if (target && target !== dragSrcEl) {
+                const rect = target.getBoundingClientRect();
+                const next = (e.clientY - rect.top) / rect.height > 0.5;
+                linksBody.insertBefore(dragSrcEl, next ? target.nextSibling : target);
+            }
+        });
+
+        linksBody.addEventListener('dragend', async () => {
+            if (dragSrcEl) {
+                dragSrcEl.classList.remove('dragging');
+                const newOrder = Array.from(linksBody.querySelectorAll('.group-container')).map(node => node.dataset.groupName);
+                await reorderGroups(newOrder);
+            }
+            dragSrcEl = null;
+            isDraggingGroup = false;
+        });
+
+        // Bloquea clicks durante drag para no abrir nada
+        linksBody.addEventListener('click', (e) => {
+            if (isDraggingGroup) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+    }
 
     const openAddLinkModal = (groupName) => {
         selectedGroup = groupName;
@@ -105,10 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Bloquea cualquier click en el header del grupo que no sea sobre sus botones
+        // Bloquea cualquier click en el header o contenedor del grupo que no sea sobre botón o <a>
         const header = target.closest('.group-header');
+        const container = target.closest('.group-container');
         const inActions = target.closest('.group-actions');
-        if (header && !inActions) {
+        const isAnchor = target.closest('a');
+        if ((header || container) && !inActions && !isAnchor) {
             event.preventDefault();
             event.stopPropagation();
             return;
@@ -204,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderData();
-    // Inicializa SortableJS
+    // Inicializa SortableJS o fallback nativo
     if (window.Sortable) {
         new Sortable(linksBody, {
             animation: 120,
@@ -217,5 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await reorderGroups(newOrder);
             }
         });
+    } else {
+        initDragAndDrop();
     }
 });
